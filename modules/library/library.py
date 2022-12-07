@@ -1,3 +1,4 @@
+from xmlrpc.client import Boolean
 from trytond.model import ModelSQL, ModelView, fields
 
 
@@ -40,6 +41,8 @@ class Author(ModelSQL, ModelView):
 
     books = fields.One2Many('library.book', 'author', 'Books')
 
+    name = fields.Char('Name', required=True)
+    gender = fields.Selection([('man','Man'),('woman', 'Woman')], 'Gender')
 
 class Book(ModelSQL, ModelView):
     'Book'
@@ -53,6 +56,13 @@ class Book(ModelSQL, ModelView):
         required=False)
     editor = fields.Many2One('library.editor', 'Editor', ondelete='RESTRICT',
         required=True)
+    
+    summary = fields.Text('Summary')
+    page_count = fields.Integer('Page Count', 
+        help='The number of page in the book')
+    edition_stopped = fields.Boolean('Edition Stopped',
+        help='If True, this book will not be printed again in this version')
+    cover = fields.Binary('Cover')
 
 
 class Exemplary(ModelSQL, ModelView):
@@ -61,3 +71,5 @@ class Exemplary(ModelSQL, ModelView):
 
     book = fields.Many2One('library.book', 'Book', ondelete='CASCADE',
         required=True)
+    acquisition_price = fields.Numeric('Acquisition Price', digits=(16, 2))
+    acquisition_date = fields.Date('Acquisition Date')

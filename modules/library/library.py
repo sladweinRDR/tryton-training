@@ -1,4 +1,3 @@
-from xmlrpc.client import Boolean
 from trytond.model import ModelSQL, ModelView, fields
 
 

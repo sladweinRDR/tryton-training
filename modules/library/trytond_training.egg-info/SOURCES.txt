@@ -1,0 +1,14 @@
+setup.py
+./__init__.py
+./library.py
+./library.xml
+./tryton.cfg
+./view/author_form.xml
+./view/author_list.xml
+trytond_training.egg-info/PKG-INFO
+trytond_training.egg-info/SOURCES.txt
+trytond_training.egg-info/dependency_links.txt
+trytond_training.egg-info/entry_points.txt
+trytond_training.egg-info/not-zip-safe
+trytond_training.egg-info/requires.txt
+trytond_training.egg-info/top_level.txt

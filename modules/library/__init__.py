@@ -6,6 +6,7 @@ import library
 def register():
     Pool.register(
         library.Genre,
+        library.EditorGenreRelation,
         library.Editor,
         library.Author,
         library.Book,

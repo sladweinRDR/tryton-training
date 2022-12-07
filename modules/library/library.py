@@ -16,6 +16,8 @@ class Genre(ModelSQL, ModelView):
     'Genre'
     __name__ = 'library.genre'
 
+    name = fields.Char('Name')
+
 
 class Editor(ModelSQL, ModelView):
     'Editor'
@@ -23,6 +25,9 @@ class Editor(ModelSQL, ModelView):
 
     genres = fields.Many2Many('library.editor-library.genre', 'editor',
         'genre', 'Genres')
+    
+    name = fields.Char('Name')
+    start_activity_date = fields.Date('Start activity Date')
 
 
 class EditorGenreRelation(ModelSQL):
@@ -43,6 +48,8 @@ class Author(ModelSQL, ModelView):
 
     name = fields.Char('Name', required=True)
     gender = fields.Selection([('man','Man'),('woman', 'Woman')], 'Gender')
+    birth_date = fields.Date('Birth Date')
+    death_date = fields.Date('Death Date')
 
 class Book(ModelSQL, ModelView):
     'Book'
@@ -58,6 +65,7 @@ class Book(ModelSQL, ModelView):
         required=True)
     
     summary = fields.Text('Summary')
+    title= fields.Char('Title', required=True)
     page_count = fields.Integer('Page Count', 
         help='The number of page in the book')
     edition_stopped = fields.Boolean('Edition Stopped',
@@ -71,5 +79,7 @@ class Exemplary(ModelSQL, ModelView):
 
     book = fields.Many2One('library.book', 'Book', ondelete='CASCADE',
         required=True)
+
+    isbn = fields.Char('Identifier of a book', required=True)    
     acquisition_price = fields.Numeric('Acquisition Price', digits=(16, 2))
     acquisition_date = fields.Date('Acquisition Date')

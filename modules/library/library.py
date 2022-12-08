@@ -32,6 +32,30 @@ class Editor(ModelSQL, ModelView):
     genres = fields.Many2Many(
         "library.editor-library.genre", "editor", "genre", "Genres"
     )
+    number_books_published = fields.Function(
+        fields.Integer("Number of Books Published"),
+        "getter_book_published_count"
+    )
+
+    @classmethod
+    def getter_book_published_count(cls, editors, name):
+        result = {x.id: 0 for x in editors}
+        Book = Pool().get("library.book")
+        book = Exemplary.__table__()
+
+        cursor = Transaction().connection.cursor()
+        cursor.execute(
+            *book.select(
+                book.editor,
+                Count(book.id),
+                where=book.editor.id.in_([x.id for x in editors]),
+                group_by=[book.editor],
+            )
+        )
+        for editor_id, count in cursor.fetchall():
+            result[editor_id] = count
+        return result
+
 
 
 class EditorGenreRelation(ModelSQL):
@@ -59,6 +83,14 @@ class Author(ModelSQL, ModelView):
     number_of_books = fields.Function(
         fields.Integer("Number of books"), "getter_number_of_books"
     )
+    genres = fields.Function(
+        fields.Many2Many('library.genre',None, None, 'Genres'),
+        "getter_genres"
+    )
+    latest_book = fields.Function(
+        fields.Many2One("library.book", "Latest Book"),
+        "getter_latest_book"
+    )
 
     def getter_age(self, name):
         if not self.birth_date:
@@ -69,6 +101,13 @@ class Author(ModelSQL, ModelView):
         if (end_date, end_date.day) < (self.birth_date.month, self.birth_date.day):
             age -= 1
         return age
+
+    def getter_genre(self, name):
+        genres = set()
+        for book in self.books:
+            genres.add(book.genre.id)
+        return list(genres)
+
 
     @classmethod
     def getter_number_of_books(cls, authors, name):
@@ -87,6 +126,31 @@ class Author(ModelSQL, ModelView):
         )
         for author_id, count in cursor.fetchall():
             result[author_id] = count
+        return result
+
+    @classmethod
+    def get_latest_book(cls, authors, name):
+        result = {x.id: None for x in authors}
+        Book = Pool().get("library.book")
+        book = Book.__table__()
+
+        cursor = Transaction().connection.cursor()
+        for author in authors:
+            cursor.execute(
+                book.select(
+                    book.id,
+                    where=book.author == author
+                )
+            )
+            books = cursor.fetchall()
+            latest = None
+            for book in books:
+                if not book.published_date:
+                    continue
+                if not latest or (
+                        latest.published_date < book.published_date):
+                    latest = book
+            result[author.id] = books
         return result
 
 
@@ -109,11 +173,50 @@ class Book(ModelSQL, ModelView):
     description = fields.Char("Description")
     summary = fields.Text("Summary")
     cover = fields.Binary("Cover")
+    published_date = fields.Date("Published Date")
     page_count = fields.Integer("Page Count", help="The number of page in the book")
     edition_stopped = fields.Boolean(
         "Edition stopped",
         help="If True, this book will not be printed again in this version",
     )
+    most_recent_exemplary = fields.Function(
+        fields.Many2One('library.exemplary', 'Most Recent Exemplary'),
+        "getter_most_recently_exemplary"
+    )
+    isbn = fields.Char('ISBN', size=13, help="The International Standard Book Number")
+    number_exemplaries = fields.Function(
+        fields.Integer("Number of exemplaries"),
+        "getter_exemplaries_count"
+    )
+
+    @classmethod
+    def getter_exemplaries_count(cls, books, name):
+        result = {x.id: 0 for x in books}
+        Exemplary = Pool().get("library.exemplary")
+        exemplary = Exemplary.__table__()
+
+        cursor = Transaction().connection.cursor()
+        cursor.execute(
+            *exemplary.select(
+                exemplary.author,
+                Count(exemplary.id),
+                where=exemplary.book.in_([x.id for x in books]),
+                group_by=[exemplary.author],
+            )
+        )
+        for book_id, count in cursor.fetchall():
+            result[book_id] = count
+        return result
+
+    def getter_recent_exemplary(self, name):
+        latest = None
+        for exemplary in self.exemplaries:
+            if not exemplary.acquisition_date:
+                continue
+            if not latest or (
+                    latest.acquisition_date < exemplary.acquisition_date):
+                latest = exemplary
+        return latest.id if latest else None
 
 
 class Exemplary(ModelSQL, ModelView):

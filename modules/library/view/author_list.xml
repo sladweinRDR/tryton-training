@@ -1,4 +1,8 @@
 <?xml version="1.0"?>
 <tree>
     <field name="name" expand="1"/>
+    <field name="birth_date" colspan="2"/>
+    <field name="death_date" colspan="2"/>
+    <field name="gender"/>
+    <field name="books" colspan="4"/>
 </tree>

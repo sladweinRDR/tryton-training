@@ -1,3 +1,20 @@
 <?xml version="1.0"?>
 <form>
+    <group id="top" string="" colspan="1" xexpand="1" xfill="1">
+        <label name="name"/>
+        <field name="name" expand="1"/>
+        <label name="creation_date"/> 
+        <field name="creation_date" expand="1"/>    
+    </group>
+    <group 
+        id="bottom"
+        string=""
+        colspan="4"
+        xexpand="1"
+        xfill="1"
+        yexpand="1"
+        yfill="1"
+    >   
+        <field name="genres" expand="1"/>   
+    </group>
 </form>

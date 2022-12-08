@@ -5,7 +5,7 @@ from sql.conditionals import Coalesce
 from sql.aggregate import Count, Max
 
 from trytond.pool import Pool
-from trytond.pyson import Eval, If, Bool
+from trytond.pyson import Eval, If, Bool, Equal, Len
 from trytond.transaction import Transaction
 from trytond.model import ModelSQL, ModelView, fields, Unique
 
@@ -25,6 +25,8 @@ class Genre(ModelSQL, ModelView):
     __name__ = 'library.genre'
 
     name = fields.Char('Name', required=True)
+    editors = fields.Many2Many('library.editor-library.genre', 'genre',
+        'editor', 'Editors', readonly=True)
 
 
 class Editor(ModelSQL, ModelView):
@@ -72,9 +74,13 @@ class Author(ModelSQL, ModelView):
     books = fields.One2Many('library.book', 'author', 'Books')
     name = fields.Char('Name', required=True)
     birth_date = fields.Date('Birth date',
-        states={'required': Bool(Eval('death_date', 'False'))},
+        states={'required': Bool(Eval('death_date', False))},
         depends=['death_date'])
-    death_date = fields.Date('Death date')
+    death_date = fields.Date('Death date',
+        domain=['OR',('death_date', "=", None),('death_date', '>', Eval('birth_date'))],
+        states={'invisible': ~Eval('birth_date')},
+        depends=['birth_date']
+        )
     gender = fields.Selection([('man', 'Man'), ('woman', 'Woman')], 'Gender')
     age = fields.Function(
         fields.Integer('Age', states={'invisible': ~Eval('death_date')}),
@@ -84,10 +90,14 @@ class Author(ModelSQL, ModelView):
         'getter_number_of_books')
     genres = fields.Function(
         fields.Many2Many('library.genre', None, None, 'Genres'),
-        'getter_genres', searcher='searcher_genres')
+        'getter_genres', searcher='searcher_genres',
+        states={'invisible': Equal(Len(Eval(books)),0)},
+        depends=['books'])
     latest_book = fields.Function(
         fields.Many2One('library.book', 'Latest Book'),
-        'getter_latest_book')
+        'getter_latest_book',
+        states={'invisible': Eval('books', False)},
+        depends=['books'])
 
     def getter_age(self, name):
         if not self.birth_date:
@@ -155,8 +165,16 @@ class Book(ModelSQL, ModelView):
     @classmethod
     def __setup__(cls):
         super().__setup__()
+        book = cls.__table__()
+
+        cls._sql_constraints += [
+            ('identifier_uniq',Unique(book,book.author, book.title),
+                'The identifier must be unique'),
+        ]
         cls._error_messages.update({
             'invalid_isbn': 'ISBN should only be digits',
+            'wrong_size_isbn': 'ISBN should have a length of 13',
+            'invalid_checksum_isbn': "ISBN checksum is not correct"
         })
 
     @classmethod
@@ -169,6 +187,13 @@ class Book(ModelSQL, ModelView):
                     raise ValueError
             except ValueError:
                 cls.raise_user_error('invalid_isbn')
+            if len(book.isbn) != 13:
+                cls.raise_user_error('wrong_size_isbn')
+            sum = 0
+            for digit, idx in enumerate(book.isbn):
+                sum += digit * (1 if idx % 2 else 3)
+            if sum % 10 != 0:
+                cls.raise_user_error('invalid_checksum_isbn')
 
     author = fields.Many2One('library.author', 'Author', required=True,
         ondelete='CASCADE')

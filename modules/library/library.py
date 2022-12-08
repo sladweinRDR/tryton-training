@@ -155,6 +155,32 @@ class Author(ModelSQL, ModelView):
     def searcher_genres(cls, name, clause):
         return []
 
+    @fields.depends('birth_date', 'death_date')
+    def on_change_with_age(self):
+        if not self.birth_date:
+            return None
+        end_date = self.death_date or datetime.date.today()
+        age = end_date.year - self.birth_date.year
+        if (end_date.month, end_date.day) < (self.birth_date.month, self.birth_date.day):
+            age -= 1
+        return age
+
+    @fields.depends('books')
+    def on_change_books(self):
+        self.genres = set()
+        self.number_of_books = 0
+        
+        for book in self.books:
+            self.number_of_books += 1
+            if book.genre:
+                self.genres.add(book.genre)
+        self.genres = list(self.genres)
+
+    @fields.depends('birth_date')
+    def on_change_birth_date(self):
+        if not self.birth_date:
+            self.death_date = None
+        
 
 class Book(ModelSQL, ModelView):
     'Book'
@@ -270,6 +296,10 @@ class Exemplary(ModelSQL, ModelView):
             ('identifier_uniq', Unique(t, t.identifier),
                 'The identifier must be unique!'),
             ]
+
+    @classmethod
+    def default_acquisition_date(cls):
+        return datetime.date.today()
 
     def get_rec_name(self, name):
         return '%s: %s' % (self.book.rec_name, self.identifier)

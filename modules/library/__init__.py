@@ -12,8 +12,12 @@ def register():
         library.Author,
         library.Book,
         library.Exemplary,
-        module='library', type_='model')
+        module="library",
+        type_="model",
+    )
     Pool.register(
         wizard.CreateExemplaries,
         wizard.CreateExemplariesParameters,
-        module='library', type_='wizard')
+        module="library",
+        type_="wizard",
+    )

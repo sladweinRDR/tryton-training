@@ -274,6 +274,31 @@ class Book(ModelSQL, ModelView):
             result[book_id] = count
         return result
 
+    @fields.depends('description', 'summary')
+    def on_change_with_description(self):
+        if self.description:
+            return self.description
+        if not self.summary:
+            return ''
+        return self.summary.split('.')[0]
+
+    @fields.depends('exemplaries')
+    def on_change_with_number_of_exemplaries(self):
+        return len(self.exemplaries or [])
+        
+    @fields.depends('editor','genre')
+    def on_change_editor(self):
+        if not self.editor:
+            return
+        if self.genre and self.genre not in self.editor.genres:
+            self.genre = None
+        if not self.genre and len(self.editor.genres) == 1:
+            self.genre = self.editor.genres[0]
+
+    @classmethod
+    def default_exemplaries(cls):
+        return [{}]
+
 
 class Exemplary(ModelSQL, ModelView):
     'Exemplary'

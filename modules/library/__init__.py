@@ -1,6 +1,7 @@
 from trytond.pool import Pool
 
 import library
+import wizard
 
 
 def register():
@@ -12,3 +13,7 @@ def register():
         library.Book,
         library.Exemplary,
         module='library', type_='model')
+    Pool.register(
+        wizard.CreateExemplaries,
+        wizard.CreateExemplariesParameters,
+        module='library', type_='wizard')

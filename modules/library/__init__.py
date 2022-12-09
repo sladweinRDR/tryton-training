@@ -18,6 +18,9 @@ def register():
     Pool.register(
         wizard.CreateExemplaries,
         wizard.CreateExemplariesParameters,
+        wizard.FuseBooks,
+        wizard.FuseBooksSelectMain,
+        wizard.FuseBooksPreview,
         module="library",
         type_="wizard",
     )

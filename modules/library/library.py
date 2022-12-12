@@ -224,6 +224,9 @@ class Book(ModelSQL, ModelView):
                 'bad_isbn_size': 'ISBN must have 13 digits',
                 'invalid_isbn_checksum': 'ISBN checksum invalid',
                 })
+        cls._buttons.update({
+            'create_exemplaries': {},
+        })
 
     @classmethod
     def validate(cls, books):
@@ -246,6 +249,11 @@ class Book(ModelSQL, ModelView):
     @classmethod
     def default_exemplaries(cls):
         return [{}]
+
+    @classmethod
+    @ModelView.button_action('library.act_create_exemplaries')
+    def create_exemplaries(cls, books):
+        pass
 
     @fields.depends('editor', 'genre')
     def on_change_editor(self):

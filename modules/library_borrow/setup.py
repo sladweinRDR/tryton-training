@@ -73,6 +73,8 @@ setup(name=name,
     install_requires=requires,
     dependency_links=dependency_links,
     zip_safe=False,
-    entry_points="""    [trytond.modules]    library_borrow = trytond.modules.library_borrow    """,
+    entry_points="""
+    [trytond.modules]
+    library_borrow = trytond.modules.library_borrow
+    """,
     )
-

@@ -25,13 +25,18 @@ class User(ModelSQL, ModelView):
     registration_date = fields.Date(
         "Registration Date",
         domain=[
-            If(~Eval("registration_date"), [], [("registration_date", "<=", Date())])
+            If(
+                ~Eval("registration_date"),
+                [],
+                [("registration_date", "<=", Date())],
+            )
         ],
         help="The date at which the user registered in the library",
     )
     checkedout_books = fields.Function(
         fields.Integer(
-            "Checked-out books", help="The number of books has currently checked out"
+            "Checked-out books",
+            help="The number of books has currently checked out",
         ),
         "getter_checkedout_books",
     )
@@ -101,7 +106,9 @@ class User(ModelSQL, ModelView):
         if isinstance(value, datetime.date):
             value = value + datetime.timedelta(days=-20)
         if isinstance(value, (list, tuple)):
-            value = [(x + datetime.timedelta(days=-20) if x else x) for x in value]
+            value = [
+                (x + datetime.timedelta(days=-20) if x else x) for x in value
+            ]
         Operator = SQL_OPERATORS[operator]
 
         query_table = user.join(
@@ -138,7 +145,10 @@ class Checkout(ModelSQL, ModelView):
         domain=[
             If(~Eval("return_date")),
             [],
-            [("return_date", "<=", Date()), ("return_date", ">=", Eval("date"))],
+            [
+                ("return_date", "<=", Date()),
+                ("return_date", ">=", Eval("date")),
+            ],
         ],
         depends=["date"],
     )
@@ -160,7 +170,9 @@ class Checkout(ModelSQL, ModelView):
         if isinstance(value, datetime.date):
             value = value + datetime.timedelta(days=-20)
         if isinstance(value, (list, tuple)):
-            value = [(x + datetime.timedelta(days=-20) if x else x) for x in value]
+            value = [
+                (x + datetime.timedelta(days=-20) if x else x) for x in value
+            ]
         return [("date", operator, value)]
 
 
@@ -188,10 +200,13 @@ class Book(metaclass=PoolMeta):
         cursor.execute(
             *book.join(exemplary, condition=(exemplary.book == book.id))
             .join(
-                checkout, "LEFT OUTER", condition=(exemplary.id == checkout.exemplary)
+                checkout,
+                "LEFT OUTER",
+                condition=(exemplary.id == checkout.exemplary),
             )
             .select(
-                book.id, where=(checkout.return_date != Null) | (checkout.id == Null)
+                book.id,
+                where=(checkout.return_date != Null) | (checkout.id == Null),
             )
         )
         for (book_id,) in cursor.fetchAll():
@@ -211,10 +226,13 @@ class Book(metaclass=PoolMeta):
         query = (
             book.join(exemplary, condition=(exemplary.book == book.id))
             .join(
-                checkout, "LEFT OUTER", condition=(exemplary.id == checkout.exemplary)
+                checkout,
+                "LEFT OUTER",
+                condition=(exemplary.id == checkout.exemplary),
             )
             .select(
-                book.id, where=(checkout.return_date != Null) | (checkout.id == Null)
+                book.id,
+                where=(checkout.return_date != Null) | (checkout.id == Null),
             )
         )
         return [("id", "in" if value else "not in", query)]
@@ -223,7 +241,9 @@ class Book(metaclass=PoolMeta):
 class Exemplary(metaclass=PoolMeta):
     __name__ = "library.book.exemplary"
 
-    checkouts = fields.One2Many("library.user.checkout", "exemplary", "Checkouts")
+    checkouts = fields.One2Many(
+        "library.user.checkout", "exemplary", "Checkouts"
+    )
     is_available = fields.Function(
         fields.Boolean(
             "Is available",
@@ -277,8 +297,11 @@ class Exemplary(metaclass=PoolMeta):
         checkout = pool.get("library.user.checkout").__table__()
         exemplary = cls.__table__()
         query = exemplary.join(
-            checkout, "LEFT OUTER", condition=(exemplary.id == checkout.exemplary)
+            checkout,
+            "LEFT OUTER",
+            condition=(exemplary.id == checkout.exemplary),
         ).select(
-            exemplary.id, where=(checkout.return_date != Null) | (checkout.id == Null)
+            exemplary.id,
+            where=(checkout.return_date != Null) | (checkout.id == Null),
         )
         return [("id", "in" if value else "not in", query)]

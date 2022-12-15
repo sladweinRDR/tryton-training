@@ -19,7 +19,13 @@ def get_require_version(name):
         require = "%s >= %s.%s.dev0, < %s.%s"
     else:
         require = "%s >= %s.%s, < %s.%s"
-    require %= (name, major_version, minor_version, major_version, minor_version + 1)
+    require %= (
+        name,
+        major_version,
+        minor_version,
+        major_version,
+        minor_version + 1,
+    )
     return require
 
 
@@ -34,7 +40,10 @@ major_version, minor_version, _ = version.split(".", 2)
 major_version = int(major_version)
 minor_version = int(minor_version)
 name = "trytond_training_override"
-download_url = "http://downloads.tryton.org/%s.%s/" % (major_version, minor_version)
+download_url = "http://downloads.tryton.org/%s.%s/" % (
+    major_version,
+    minor_version,
+)
 
 if minor_version % 2:
     version = "%s.%s.dev0" % (major_version, minor_version)
@@ -69,7 +78,13 @@ setup(
     package_data={
         "trytond.modules.library_borrow": (
             info.get("xml", [])
-            + ["tryton.cfg", "view/*.xml", "locale/*.po", "icons/*.svg", "tests/*.rst"]
+            + [
+                "tryton.cfg",
+                "view/*.xml",
+                "locale/*.po",
+                "icons/*.svg",
+                "tests/*.rst",
+            ]
         ),
     },
     platforms="any",

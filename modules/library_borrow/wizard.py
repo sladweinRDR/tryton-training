@@ -59,7 +59,11 @@ class Borrow(Wizard):
                     if exemplary.is_available:
                         exemplaries.append(exemplary.id)
                         break
-        return {"user": user, "exemplaries": exemplaries, "date": datetime.date.today()}
+        return {
+            "user": user,
+            "exemplaries": exemplaries,
+            "date": datetime.date.today(),
+        }
 
     def transition_borrow(self):
         Checkout = Pool().get("library.user.checkout")
@@ -68,9 +72,13 @@ class Borrow(Wizard):
         checkouts = []
         for exemplary in exemplaries:
             if not exemplary.is_available:
-                self.raise_user_error("unavailable", {"exemplary": exemplary.rec_name})
+                self.raise_user_error(
+                    "unavailable", {"exemplary": exemplary.rec_name}
+                )
             checkouts.append(
-                Checkout(user=user, date=self.select_books.date, exemplary=exemplary)
+                Checkout(
+                    user=user, date=self.select_books.date, exemplary=exemplary
+                )
             )
         Checkout.save(checkouts)
         self.select_books.checkouts = checkouts
@@ -139,8 +147,13 @@ class Return(Wizard):
                     [("user", "=", user), ("return_date", "=", None)]
                 )
             ]
-        elif Transaction().context.get("active_model") == "library.user.checkout":
-            checkouts = Checkout.browse(Transaction().context.get("active_ids"))
+        elif (
+            Transaction().context.get("active_model")
+            == "library.user.checkout"
+        ):
+            checkouts = Checkout.browse(
+                Transaction().context.get("active_ids")
+            )
             if len({x.user for x in checkouts}) != 1:
                 self.raise_user_error("multiple_users")
             if any(x.is_available for x in checkouts):

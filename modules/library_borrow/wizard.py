@@ -127,7 +127,7 @@ class Return(Wizard):
             }
         )
 
-    def default_select_books(self, name):
+    def default_select_checkouts(self, name):
         Checkout = Pool().get("library.user.checkout")
         user = None
         checkouts = []
